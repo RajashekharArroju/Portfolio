@@ -1,11 +1,20 @@
 // Portfolio JavaScript functionality
-document.addEventListener('DOMContentLoaded', function() {
+function onReady(callback) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', callback);
+    } else {
+        callback();
+    }
+}
+
+onReady(function() {
     // Initialize all functionality
     initSmoothScrolling();
     initScrollAnimations();
     initActiveNavigation();
     initFadeInAnimations();
     initInteractiveEffects();
+    initExperienceCalculations();
 });
 
 // Smooth scrolling for navigation links
@@ -143,6 +152,100 @@ function initInteractiveEffects() {
     initLeadershipCardEffects();
     initCertificationEffects();
     initHeroParticles();
+}
+
+// Calculate and update experience values based on the current date
+function initExperienceCalculations() {
+    const experienceBadge = document.getElementById('experience-badge');
+    const experienceYears = document.getElementById('experience-years');
+    const timelinePeriods = document.querySelectorAll('.timeline-period');
+
+    const today = new Date();
+    const startDates = [];
+
+    timelinePeriods.forEach(span => {
+        const startValue = span.dataset.start;
+        const endValue = span.dataset.end;
+        if (!startValue || !endValue) return;
+
+        const startDate = parseTimelineDate(startValue);
+        const endDate = parseTimelineDate(endValue);
+        if (!startDate || !endDate) return;
+
+        startDates.push(startDate);
+
+        const originalLabel = span.textContent.split('·')[0].trim();
+        const formattedLabel = getFormattedLabel(startValue, endValue, originalLabel);
+        const duration = getFormattedDuration(startDate, endDate);
+
+        span.textContent = `${formattedLabel} · ${duration}`;
+    });
+
+    if (startDates.length && experienceBadge) {
+        const earliestStart = startDates.reduce((earliest, current) => current < earliest ? current : earliest, startDates[0]);
+        const overallLabel = getOverallExperienceLabel(earliestStart, today);
+        experienceBadge.textContent = `${overallLabel} Years Experience`;
+        if (experienceYears) {
+            experienceYears.textContent = overallLabel;
+        }
+    }
+
+    function parseTimelineDate(value) {
+        if (!value) return null;
+        if (value.toLowerCase() === 'present') {
+            return new Date();
+        }
+        if (/^\d{4}-\d{2}$/.test(value)) {
+            return new Date(`${value}-01`);
+        }
+        return new Date(value);
+    }
+
+    function getFormattedLabel(startValue, endValue, originalLabel) {
+        const hasRange = originalLabel && (originalLabel.includes('-') || originalLabel.includes('–'));
+        if (!originalLabel || !hasRange) {
+            return originalLabel;
+        }
+        const start = parseTimelineDate(startValue);
+        const endLabel = endValue.toLowerCase() === 'present' ? 'Present' : formatMonthYear(parseTimelineDate(endValue));
+        return `${formatMonthYear(start)} - ${endLabel}`;
+    }
+
+    function formatMonthYear(date) {
+        return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    }
+
+    function getFormattedDuration(start, end) {
+        let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+        if (months < 0) {
+            months = 0;
+        }
+        const years = Math.floor(months / 12);
+        const remainingMonths = months % 12;
+        if (years > 0 && remainingMonths > 0) {
+            return `${years} yr${years > 1 ? 's' : ''} ${remainingMonths} mo${remainingMonths > 1 ? 's' : ''}`;
+        }
+        if (years > 0) {
+            return `${years} yr${years > 1 ? 's' : ''}`;
+        }
+        if (remainingMonths > 0) {
+            return `${remainingMonths} mo${remainingMonths > 1 ? 's' : ''}`;
+        }
+        return 'Less than 1 mo';
+    }
+
+    function getOverallExperienceLabel(earliest, now) {
+        let years = now.getFullYear() - earliest.getFullYear();
+        let months = now.getMonth() - earliest.getMonth();
+        if (months < 0) {
+            years -= 1;
+            months += 12;
+        }
+        if (years < 0) {
+            years = 0;
+        }
+        return months > 0 ? `${years}+` : `${years}`;
+    }
 }
 
 // Enhanced hover effects for skill items
