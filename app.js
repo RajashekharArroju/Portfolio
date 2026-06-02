@@ -15,6 +15,9 @@ onReady(function() {
     initFadeInAnimations();
     initInteractiveEffects();
     initExperienceCalculations();
+    initTypingAnimation();
+    initCounterAnimation();
+    initScrollProgress();
 });
 
 // Smooth scrolling for navigation links
@@ -156,8 +159,6 @@ function initInteractiveEffects() {
 
 // Calculate and update experience values based on the current date
 function initExperienceCalculations() {
-    const experienceBadge = document.getElementById('experience-badge');
-    const experienceYears = document.getElementById('experience-years');
     const timelinePeriods = document.querySelectorAll('.timeline-period');
 
     const today = new Date();
@@ -180,15 +181,6 @@ function initExperienceCalculations() {
 
         span.textContent = `${formattedLabel} · ${duration}`;
     });
-
-    if (startDates.length && experienceBadge) {
-        const earliestStart = startDates.reduce((earliest, current) => current < earliest ? current : earliest, startDates[0]);
-        const overallLabel = getOverallExperienceLabel(earliestStart, today);
-        experienceBadge.textContent = `${overallLabel} Years Experience`;
-        if (experienceYears) {
-            experienceYears.textContent = overallLabel;
-        }
-    }
 
     function parseTimelineDate(value) {
         if (!value) return null;
@@ -359,41 +351,202 @@ function initCertificationEffects() {
     });
 }
 
-// Initialize particle effect for hero section (subtle)
-function initHeroParticles() {
-    const heroSection = document.querySelector('.hero-section');
-    
-    if (heroSection && !heroSection.querySelector('.particle')) {
-        // Add subtle background animation
-        heroSection.style.position = 'relative';
-        heroSection.style.overflow = 'hidden';
-        
-        // Create animated background elements
-        for (let i = 0; i < 3; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.cssText = `
-                position: absolute;
-                width: ${Math.random() * 80 + 40}px;
-                height: ${Math.random() * 80 + 40}px;
-                background: rgba(var(--color-teal-500-rgb), 0.03);
-                border-radius: 50%;
-                pointer-events: none;
-                top: ${Math.random() * 100}%;
-                left: ${Math.random() * 100}%;
-                animation: float ${Math.random() * 15 + 15}s infinite linear;
-                z-index: 0;
-            `;
-            heroSection.appendChild(particle);
+// Typing animation for hero title
+function initTypingAnimation() {
+    const heroTitle = document.querySelector('.hero-title-sub');
+    if (!heroTitle) return;
+
+    const text = "Enterprise-Scale Automation & Cloud Platforms";
+    let index = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
+
+    function typeWriter() {
+        const currentText = text.substring(0, index);
+        heroTitle.textContent = currentText;
+
+        if (!isDeleting && index < text.length) {
+            index++;
+            typingSpeed = 100;
+        } else if (isDeleting && index > 0) {
+            index--;
+            typingSpeed = 50;
+        } else if (!isDeleting && index === text.length) {
+            isDeleting = true;
+            typingSpeed = 2000; // Pause at end
+        } else if (isDeleting && index === 0) {
+            isDeleting = false;
+            typingSpeed = 500; // Pause before restart
         }
-        
-        // Ensure content is above particles
-        const heroContent = heroSection.querySelector('.hero-content');
-        if (heroContent) {
-            heroContent.style.position = 'relative';
-            heroContent.style.zIndex = '1';
-        }
+
+        setTimeout(typeWriter, typingSpeed);
     }
+
+    // Start typing animation after initial fade-in
+    setTimeout(typeWriter, 1500);
+}
+
+// Animated counters for hero stats
+function initCounterAnimation() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+
+    function animateCounter(element, target) {
+        const duration = 2000;
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statNumber = entry.target;
+                const target = parseInt(statNumber.dataset.target);
+                animateCounter(statNumber, target);
+                observer.unobserve(statNumber);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    statNumbers.forEach(stat => observer.observe(stat));
+}
+
+// Scroll progress indicator
+function initScrollProgress() {
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    progressBar.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        z-index: 1001;
+        transition: width 0.1s ease;
+    `;
+    document.body.appendChild(progressBar);
+
+    function updateProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        progressBar.style.width = scrollPercent + '%';
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+}
+
+// Enhanced interactive effects for new sections
+function initInteractiveEffects() {
+    initSkillHoverEffects();
+    initContactLinkEffects();
+    initAchievementCardEffects();
+    initLeadershipCardEffects();
+    initCertificationEffects();
+    initHeroParticles();
+    initExpertiseCardEffects();
+    initCaseStudyEffects();
+    initInnovationCardEffects();
+    initTechIconEffects();
+    initTestimonialEffects();
+}
+
+// Expertise cards hover effects
+function initExpertiseCardEffects() {
+    const expertiseCards = document.querySelectorAll('.expertise-card');
+
+    expertiseCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            const icon = this.querySelector('.expertise-icon');
+            if (icon) {
+                icon.style.transform = 'scale(1.2) rotate(5deg)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+        });
+
+        card.addEventListener('mouseleave', function() {
+            const icon = this.querySelector('.expertise-icon');
+            if (icon) {
+                icon.style.transform = 'scale(1) rotate(0deg)';
+            }
+        });
+    });
+}
+
+// Case study expandable effects
+function initCaseStudyEffects() {
+    const caseStudies = document.querySelectorAll('.case-study-card');
+
+    caseStudies.forEach(card => {
+        const content = card.querySelector('.case-study-content');
+        let isExpanded = false;
+
+        card.addEventListener('click', function() {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                card.classList.add('expanded');
+            } else {
+                content.style.maxHeight = '200px';
+                card.classList.remove('expanded');
+            }
+        });
+    });
+}
+
+// Innovation card preview effects
+function initInnovationCardEffects() {
+    const innovationCards = document.querySelectorAll('.innovation-card');
+
+    innovationCards.forEach(card => {
+        const preview = card.querySelector('.innovation-preview');
+
+        card.addEventListener('mouseenter', function() {
+            preview.style.transform = 'scale(1.05)';
+            preview.style.transition = 'transform 0.3s ease';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            preview.style.transform = 'scale(1)';
+        });
+    });
+}
+
+// Tech item floating effects
+function initTechIconEffects() {
+    const techItems = document.querySelectorAll('.tech-item');
+
+    techItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.classList.add('floating');
+    });
+}
+
+// Testimonial card effects
+function initTestimonialEffects() {
+    const testimonials = document.querySelectorAll('.testimonial-card');
+
+    testimonials.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) rotate(1deg)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) rotate(0deg)';
+        });
+    });
 }
 
 // Add CSS animations dynamically
@@ -412,35 +565,67 @@ function addDynamicStyles() {
                     transform: translateX(0);
                 }
             }
-            
+
             @keyframes float {
                 0% { transform: translate(0, 0) rotate(0deg); }
                 33% { transform: translate(20px, -20px) rotate(120deg); }
                 66% { transform: translate(-15px, 15px) rotate(240deg); }
                 100% { transform: translate(0, 0) rotate(360deg); }
             }
-            
+
+            @keyframes floating {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+            }
+
             .animate-timeline {
                 animation: slideInLeft 0.6s ease forwards;
             }
-            
-            .achievement-icon, 
-            .leadership-icon, 
-            .certification-icon {
+
+            .achievement-icon,
+            .leadership-icon,
+            .certification-icon,
+            .expertise-icon {
                 transition: transform 0.3s ease;
             }
-            
+
             .contact-item {
                 transition: transform 0.2s ease;
             }
-            
+
             .skill-item {
                 transition: all 0.3s ease;
             }
-            
+
+            .floating {
+                animation: floating 3s ease-in-out infinite;
+            }
+
+            .case-study-content {
+                max-height: 200px;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+            }
+
+            .case-study-card.expanded .case-study-content {
+                max-height: none;
+            }
+
             /* Ensure smooth scrolling is supported */
             html {
                 scroll-behavior: smooth;
+            }
+
+            /* Fade-in animations */
+            .fade-in {
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.6s ease, transform 0.6s ease;
+            }
+
+            .fade-in.visible {
+                opacity: 1;
+                transform: translateY(0);
             }
         `;
         document.head.appendChild(style);
